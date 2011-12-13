@@ -2,6 +2,7 @@ package com.mapplace;
 
 //import java.util.ArrayList;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List; 
@@ -10,11 +11,16 @@ import java.util.Locale;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
@@ -120,13 +126,13 @@ public class MyGoogleMap extends MapActivity
      
     nowGeoPoint = getGeoByLocation(mLocation01); 
     
-    if (nowGeoPoint == null)
+    if (nowGeoPoint != null)
     {
-      openOptionsDialog("no GPS rec");    
+      refreshMapViewByGeoPoint(nowGeoPoint, 
+          mMapView, intZoomLevel); 
+     //openOptionsDialog("no GPS rec");    
     }
     
-    refreshMapViewByGeoPoint(nowGeoPoint, 
-                       mMapView, intZoomLevel); 
      
     mLocationManager01.requestLocationUpdates 
     (strLocationProvider, 2000, 10, mLocationListener01); 
@@ -256,6 +262,8 @@ public class MyGoogleMap extends MapActivity
           return mapLocations;
         }
         
+        int i=0;
+        
         while(!cursor.isAfterLast())
         {
           store_item sitem = new store_item();
@@ -265,8 +273,16 @@ public class MyGoogleMap extends MapActivity
           sitem.phone = cursor.getString(4);
           sitem.addr = cursor.getString(5);
           sitem.commit = cursor.getString(6);
+          //openOptionsDialog(sitem.addr);
           
-          GeoPoint nowgp = getGeoByAddress(sitem.addr);
+          GeoPoint nowgp = getGeoPoint(getLocationInfo(sitem.addr)); 
+              //getGeoByAddress(sitem.addr);
+
+          if (nowgp == null)
+          {
+            cursor.moveToNext();
+            continue;
+          }
           double Latitude = nowgp.getLatitudeE6()/ 1E6;
           double Longitude = nowgp.getLongitudeE6()/ 1E6;
           
@@ -281,6 +297,10 @@ public class MyGoogleMap extends MapActivity
       }               
       
     }
+    
+    //openOptionsDialog(Integer.toString(mapLocations.size()));
+    
+    
     return mapLocations;
   }
 
@@ -344,8 +364,7 @@ public class MyGoogleMap extends MapActivity
     { 
       if(strSearchAddress!="") 
       { 
-        Geocoder mGeocoder01 = new Geocoder 
-        (MyGoogleMap.this, Locale.getDefault()); 
+        Geocoder mGeocoder01 = new Geocoder(MyGoogleMap.this, Locale.getDefault()); 
          
         List<Address> lstAddress = mGeocoder01.getFromLocationName
                            (strSearchAddress, 10);
@@ -524,6 +543,61 @@ public class MyGoogleMap extends MapActivity
         super.handleMessage(msg);
     }
 };   
+
+public static JSONObject getLocationInfo(String address) {  
+  
+  HttpGet httpGet = new HttpGet("http://maps.google.com/maps/api/geocode/json?address=" + address  
+          + "ka&sensor=false");  
+  HttpClient client = new DefaultHttpClient();  
+  HttpResponse response;  
+  StringBuilder stringBuilder = new StringBuilder();  
+
+  try {  
+      response = client.execute(httpGet);  
+      HttpEntity entity = response.getEntity();  
+      InputStream stream = entity.getContent();  
+      int b;  
+      while ((b = stream.read()) != -1) {  
+          stringBuilder.append((char) b);  
+      }  
+  } catch (ClientProtocolException e) {  
+  } catch (IOException e) {  
+  }  
+
+  JSONObject jsonObject = new JSONObject();  
+  try {  
+      jsonObject = new JSONObject(stringBuilder.toString());  
+  } catch (JSONException e) {  
+      // TODO Auto-generated catch block  
+      e.printStackTrace();  
+  }  
+
+  return jsonObject;  
+}  
+
+public static GeoPoint getGeoPoint(JSONObject jsonObject) {  
+  
+  Double lon = new Double(0);  
+  Double lat = new Double(0);  
+
+  try {  
+
+      lon = ((JSONArray)jsonObject.get("results")).getJSONObject(0)  
+          .getJSONObject("geometry").getJSONObject("location")  
+          .getDouble("lng");  
+
+      lat = ((JSONArray)jsonObject.get("results")).getJSONObject(0)  
+          .getJSONObject("geometry").getJSONObject("location")  
+          .getDouble("lat");  
+
+  } catch (JSONException e) {  
+      // TODO Auto-generated catch block  
+      e.printStackTrace();  
+  }  
+
+  return new GeoPoint((int) (lat * 1E6), (int) (lon * 1E6));  
+
+}  
 
   
   //show message

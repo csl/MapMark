@@ -108,7 +108,8 @@ public class MyOverLay  extends Overlay {
     	RectF hitTestRecr = new RectF();
 		  Point screenCoords = new Point();
     	Iterator<MapLocation> iterator = mLocationViewers.getMapLocations(false).iterator();
-    	while(iterator.hasNext()) {
+    	while(iterator.hasNext()) 
+    	{
     		MapLocation testLocation = iterator.next();
     		
     		/**
@@ -138,18 +139,22 @@ public class MyOverLay  extends Overlay {
     
     private void drawNowGeoMap(Canvas canvas, MapView mapView, boolean shadow) 
     {
-      Paint paint = new Paint();
-      Point myScreenCoords = new Point();
-
-      mapView.getProjection().toPixels(mLocationViewers.nowGeoPoint, myScreenCoords);
-      paint.setStrokeWidth(1);
-      paint.setARGB(255, 255, 0, 0);
-      paint.setStyle(Paint.Style.STROKE);
-
-      canvas.drawBitmap(mNowIcon, myScreenCoords.x, myScreenCoords.y, paint);
-      canvas.drawText("現在位置", myScreenCoords.x, myScreenCoords.y, paint);
-    }
+      
+      if (mLocationViewers.nowGeoPoint != null)
+      {
+        Paint paint = new Paint();
+        Point myScreenCoords = new Point();
+  
+        mapView.getProjection().toPixels(mLocationViewers.nowGeoPoint, myScreenCoords);
+        paint.setStrokeWidth(1);
+        paint.setARGB(255, 255, 0, 0);
+        paint.setStyle(Paint.Style.STROKE);
+  
+        canvas.drawBitmap(mNowIcon, myScreenCoords.x, myScreenCoords.y, paint);
+        canvas.drawText("現在位置", myScreenCoords.x, myScreenCoords.y, paint);
     
+      }
+    }    
     private void drawMapLocations(Canvas canvas, MapView	mapView, boolean shadow) {
     	
 		Iterator<MapLocation> iterator = mLocationViewers.getMapLocations(false).iterator();
@@ -201,7 +206,7 @@ public class MyOverLay  extends Overlay {
         int TEXT1_OFFSET_Y = 25;
 
 				canvas.drawText(mSelectedMapLocation.getName(), infoWindowOffsetX+TEXT_OFFSET_X,infoWindowOffsetY+TEXT_OFFSET_Y, getmTextPaint());
-        canvas.drawText("請點選地標, 並選擇", infoWindowOffsetX+TEXT1_OFFSET_X,infoWindowOffsetY+TEXT1_OFFSET_Y, getmTextPaint());
+        canvas.drawText("請點選地標, 觀看詳細內容", infoWindowOffsetX+TEXT1_OFFSET_X,infoWindowOffsetY+TEXT1_OFFSET_Y, getmTextPaint());
         showWinInfo = true;
 			}
     	}

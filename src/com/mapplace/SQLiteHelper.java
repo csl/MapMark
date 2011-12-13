@@ -20,7 +20,7 @@ public class SQLiteHelper extends SQLiteOpenHelper
 	{
 		db.execSQL("CREATE TABLE IF NOT EXISTS " +
 				TB_NAME + "(" +
-				store_item.ID + " integer primary key," +
+				store_item.ID + " integer primary key asc autoincrement," +
 				store_item.NAME + " varchar," + 
 				store_item.INTRO + " varchar,"+
 				store_item.TIME + " varchar,"+
